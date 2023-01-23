@@ -1,15 +1,19 @@
 package com.example.bottomnavigation
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.EditText
-import android.widget.Spinner
+import android.widget.*
+import android.widget.AdapterView.OnItemSelectedListener
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.bottomnavigation.adapter.UserAdapter
+import com.example.bottomnavigation.clickinterface.QtyClickListener
+import com.example.bottomnavigation.model.MenuUserData
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -21,13 +25,17 @@ private const val ARG_PARAM2 = "param2"
  * Use the [HomeFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class HomeFragment : Fragment() {
+class HomeFragment : Fragment(), QtyClickListener {
 
     lateinit var mainActivity: MainActivity
-    lateinit var etName:EditText
-    lateinit var btnSave:Button
-    lateinit var spnAdd:Spinner
-    val userList= ArrayList<String>()
+    lateinit var spnAdd: Spinner
+    lateinit var btnAdd: Button
+    lateinit var recyclerView: RecyclerView
+    lateinit var tvPriceSet:TextView
+
+    lateinit var userAdapter: UserAdapter
+    var selectedPosition = -1
+    var userList = ArrayList<MenuUserData>()
 
 
     // TODO: Rename and change types of parameters
@@ -36,7 +44,7 @@ class HomeFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        mainActivity=activity as MainActivity
+        mainActivity = activity as MainActivity
         arguments?.let {
             param1 = it.getString(ARG_PARAM1)
             param2 = it.getString(ARG_PARAM2)
@@ -49,28 +57,48 @@ class HomeFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
 
+
         val view = inflater.inflate(R.layout.fragment_home, container, false)
-        etName=view.findViewById(R.id.etName)
-        btnSave=view.findViewById(R.id.btnSave)
-        spnAdd=view.findViewById(R.id.spnAdd)
+
+        recyclerView = view.findViewById(R.id.recyclerView)
+        btnAdd = view.findViewById(R.id.btnAdd)
+        tvPriceSet=view.findViewById(R.id.tvPriceSet)
+
+        userAdapter = UserAdapter(userList, this)
+
+        spnAdd = view.findViewById(R.id.spnAdd)
+        val spinnerAdapter = ArrayAdapter<MenuUserData>(
+            mainActivity,
+            android.R.layout.simple_list_item_1, mainActivity.arrayList
+        )
+        println("data" + spinnerAdapter)
+        spnAdd.adapter = spinnerAdapter
 
 
 
-        btnSave.setOnClickListener{
+        spnAdd.setOnItemSelectedListener(object : OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                p3: Long
+            ) {
+                selectedPosition = position
+            }
 
-            val name=etName.text.toString()
-            userList.add(name)
+            override fun onNothingSelected(p0: AdapterView<*>?) {
+            }
+        })
 
+        recyclerView.layoutManager = LinearLayoutManager(mainActivity)
+        recyclerView.adapter = userAdapter
+        btnAdd.setOnClickListener {
+            userList.add(mainActivity.arrayList.get(selectedPosition))
+            println("Menu userlist" + userList)
+            userAdapter.notifyDataSetChanged()
         }
-        val adapter=ArrayAdapter<String>(mainActivity,android.R.layout.simple_spinner_item,userList)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spnAdd.adapter=adapter
-
         return view
     }
-
-
-
 
     companion object {
         /**
@@ -88,9 +116,31 @@ class HomeFragment : Fragment() {
                 arguments = Bundle().apply {
                     putString(ARG_PARAM1, param1)
                     putString(ARG_PARAM2, param2)
-
                 }
             }
     }
-}
 
+    override fun addClick(menuUserData: MenuUserData, position: Int) {
+        userList[selectedPosition].qty=userList[selectedPosition].qty+1
+
+
+
+        userAdapter.notifyDataSetChanged()
+        Price()
+    }
+
+    override fun removeClick(menuUserData: MenuUserData, position: Int) {
+        userList[selectedPosition].qty=userList[selectedPosition].qty-1
+
+        Price()
+    }
+
+    fun Price(){
+        var tPrice=0.0
+        for(i in userList) {
+            tPrice = tPrice + (i.menuDescription.toDouble().times(i.qty))
+        }
+
+        tvPriceSet.setText(tPrice.toString())
+    }
+}

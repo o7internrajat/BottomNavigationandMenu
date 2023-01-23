@@ -11,6 +11,9 @@
         android:label="fragment_home"
         tools:layout="@layout/fragment_home" >
 
+        <action
+            android:id="@+id/action_homeFragment_to_notificationFragment"
+            app:destination="@id/notificationFragment" />
     </fragment>
     <fragment
         android:id="@+id/notificationFragment"
@@ -18,10 +21,13 @@
         android:label="fragment_notification"
         tools:layout="@layout/fragment_notification" >
 
+        <action
+            android:id="@+id/action_notificationFragment_to_dialogFragment"
+            app:destination="@id/dialogFragment" />
     </fragment>
     <fragment
-        android:id="@+id/settingFragment"
-        android:name="com.example.bottomnavigation.SettingFragment"
-        android:label="fragment_setting"
-        tools:layout="@layout/fragment_setting" />
+        android:id="@+id/dialogFragment"
+        android:name="com.example.bottomnavigation.DialogFragment"
+        android:label="fragment_dialog"
+        tools:layout="@layout/fragment_dialog" />
 </navigation>
